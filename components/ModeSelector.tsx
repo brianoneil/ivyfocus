@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import type { AudioMode } from '../lib/types/audio';
 
 interface ModeSelectorProps {
@@ -82,9 +82,9 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: 'rgba(242, 242, 247, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
   },

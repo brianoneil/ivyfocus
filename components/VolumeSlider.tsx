@@ -3,9 +3,9 @@
  * Reusable slider for volume control
  */
 
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
 import Slider from '@react-native-community/slider';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface VolumeSliderProps {
   value: number; // 0-1
@@ -32,9 +32,6 @@ export const VolumeSlider: React.FC<VolumeSliderProps> = ({ value, onValueChange
         maximumTrackTintColor="#E5E5EA"
         thumbTintColor="#007AFF"
       />
-      <Text style={styles.warning}>
-        ⚠️ Keep volume at a comfortable level, especially with headphones
-      </Text>
     </View>
   );
 };
@@ -62,12 +59,6 @@ const styles = StyleSheet.create({
   slider: {
     width: '100%',
     height: 40,
-  },
-  warning: {
-    fontSize: 12,
-    color: '#FF9500',
-    marginTop: 4,
-    textAlign: 'center',
   },
 });
 
