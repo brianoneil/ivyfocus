@@ -3,12 +3,12 @@ import randomColor from "randomcolor";
 import { useMemo } from "react";
 import { Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useDerivedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
+    Easing,
+    useAnimatedStyle,
+    useDerivedValue,
+    withRepeat,
+    withSequence,
+    withTiming,
 } from "react-native-reanimated";
 
 function randomNumber(min: number, max: number) {
@@ -21,6 +21,7 @@ type LavaLampProps = {
   intensity?: number;
   colors?: string[];
   duration?: number;
+  backgroundColor?: string;
 };
 
 type Circle = {
@@ -43,6 +44,7 @@ export function LavaLamp({
   intensity = 100,
   colors,
   duration,
+  backgroundColor,
 }: LavaLampProps) {
   const { width, height } = useWindowDimensions();
   const circles = useMemo<Circle[]>(() => {
@@ -67,11 +69,11 @@ export function LavaLamp({
       };
     });
   }, [count, hue, colors, width, height]);
-  const bgColor = randomColor({ hue, count: 1, luminosity: "dark" });
+  const bgColor = backgroundColor ?? randomColor({ hue, count: 1, luminosity: "dark" })[0];
 
   return (
     <View
-      style={[StyleSheet.absoluteFillObject, { backgroundColor: bgColor[0] }]}>
+      style={[StyleSheet.absoluteFillObject, { backgroundColor: bgColor }]}>
       {circles.map((circle) => {
         return (
           <Circle

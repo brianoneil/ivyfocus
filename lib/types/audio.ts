@@ -5,6 +5,8 @@
 
 export type NoiseColor = 'white' | 'pink' | 'brown' | 'green';
 
+export type NaturalSound = 'none' | 'wind' | 'rain' | 'ocean';
+
 export type AudioMode = 'binaural' | 'noise';
 
 export interface BinauralParams {
@@ -16,6 +18,8 @@ export interface BinauralParams {
 export interface NoiseParams {
   color: NoiseColor;
   volume: number;   // 0-1
+  naturalSound: NaturalSound;
+  naturalSoundVolume: number; // 0-1, volume of natural sound layer
 }
 
 export interface AudioEngineState {

@@ -16,6 +16,8 @@ const STORAGE_KEYS = {
   VOLUME: '@ivyfocus_volume',
   UI_DIMNESS: '@ivyfocus_ui_dimness',
   BACKGROUND_TYPE: '@ivyfocus_background_type',
+  NATURAL_SOUND: '@ivyfocus_natural_sound',
+  NATURAL_SOUND_VOLUME: '@ivyfocus_natural_sound_volume',
 };
 
 export type BackgroundType = 'dots' | 'lava';
@@ -31,6 +33,8 @@ interface AudioContextValue {
 
   // Noise parameters
   noiseColor: NoiseColor;
+  naturalSound: NaturalSound;
+  naturalSoundVolume: number;
 
   // Common
   volume: number;
@@ -53,6 +57,8 @@ interface AudioContextValue {
   setVolume: (value: number) => void;
   setUiDimness: (value: number) => void;
   setBackgroundType: (value: BackgroundType) => void;
+  setNaturalSound: (value: NaturalSound) => void;
+  setNaturalSoundVolume: (value: number) => void;
 }
 
 const AudioContext = createContext<AudioContextValue | undefined>(undefined);
@@ -67,6 +73,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   // Noise state
   const [noiseColor, setNoiseColorState] = useState<NoiseColor>('white');
+  const [naturalSound, setNaturalSoundState] = useState<NaturalSound>('none');
+  const [naturalSoundVolume, setNaturalSoundVolumeState] = useState(0.8); // 0-1, increased from 0.5
 
   // Common state
   const [volume, setVolumeState] = useState(0.5); // 0-1
@@ -80,13 +88,24 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const [savedCarrier, savedBeat, savedNoiseColor, savedVolume, savedUiDimness, savedBackgroundType] = await Promise.all([
+        const [
+          savedCarrier,
+          savedBeat,
+          savedNoiseColor,
+          savedVolume,
+          savedUiDimness,
+          savedBackgroundType,
+          savedNaturalSound,
+          savedNaturalSoundVolume,
+        ] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.CARRIER),
           AsyncStorage.getItem(STORAGE_KEYS.BEAT),
           AsyncStorage.getItem(STORAGE_KEYS.NOISE_COLOR),
           AsyncStorage.getItem(STORAGE_KEYS.VOLUME),
           AsyncStorage.getItem(STORAGE_KEYS.UI_DIMNESS),
           AsyncStorage.getItem(STORAGE_KEYS.BACKGROUND_TYPE),
+          AsyncStorage.getItem(STORAGE_KEYS.NATURAL_SOUND),
+          AsyncStorage.getItem(STORAGE_KEYS.NATURAL_SOUND_VOLUME),
         ]);
 
         if (savedCarrier) setCarrierState(parseFloat(savedCarrier));
@@ -95,6 +114,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (savedVolume) setVolumeState(parseFloat(savedVolume));
         if (savedUiDimness) setUiDimnessState(parseFloat(savedUiDimness));
         if (savedBackgroundType) setBackgroundTypeState(savedBackgroundType as BackgroundType);
+        if (savedNaturalSound) setNaturalSoundState(savedNaturalSound as NaturalSound);
+        if (savedNaturalSoundVolume) setNaturalSoundVolumeState(parseFloat(savedNaturalSoundVolume));
       } catch (error) {
         console.error('Error loading settings:', error);
       } finally {
@@ -147,6 +168,20 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [backgroundType, isLoaded]);
 
+  // Save natural sound when it changes
+  useEffect(() => {
+    if (isLoaded) {
+      AsyncStorage.setItem(STORAGE_KEYS.NATURAL_SOUND, naturalSound);
+    }
+  }, [naturalSound, isLoaded]);
+
+  // Save natural sound volume when it changes
+  useEffect(() => {
+    if (isLoaded) {
+      AsyncStorage.setItem(STORAGE_KEYS.NATURAL_SOUND_VOLUME, naturalSoundVolume.toString());
+    }
+  }, [naturalSoundVolume, isLoaded]);
+
   const startBinaural = useCallback(() => {
     audioEngine.startBinaural({ carrier, beat, volume });
     setMode('binaural');
@@ -160,10 +195,15 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   const startNoise = useCallback(() => {
-    audioEngine.startNoise({ color: noiseColor, volume });
+    audioEngine.startNoise({
+      color: noiseColor,
+      volume,
+      naturalSound,
+      naturalSoundVolume,
+    });
     setMode('noise');
     setIsPlaying(true);
-  }, [noiseColor, volume]);
+  }, [noiseColor, volume, naturalSound, naturalSoundVolume]);
 
   const stopNoise = useCallback(() => {
     audioEngine.stopNoise();
@@ -217,12 +257,28 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setBackgroundTypeState(value);
   }, []);
 
+  const setNaturalSound = useCallback((value: NaturalSound) => {
+    setNaturalSoundState(value);
+    if (mode === 'noise' && isPlaying) {
+      audioEngine.updateNoise({ naturalSound: value });
+    }
+  }, [mode, isPlaying]);
+
+  const setNaturalSoundVolume = useCallback((value: number) => {
+    setNaturalSoundVolumeState(value);
+    if (mode === 'noise' && isPlaying) {
+      audioEngine.updateNoise({ naturalSoundVolume: value });
+    }
+  }, [mode, isPlaying]);
+
   const value: AudioContextValue = {
     mode,
     isPlaying,
     carrier,
     beat,
     noiseColor,
+    naturalSound,
+    naturalSoundVolume,
     volume,
     uiDimness,
     backgroundType,
@@ -237,6 +293,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setVolume,
     setUiDimness,
     setBackgroundType,
+    setNaturalSound,
+    setNaturalSoundVolume,
   };
 
   return <AudioContext.Provider value={value}>{children}</AudioContext.Provider>;

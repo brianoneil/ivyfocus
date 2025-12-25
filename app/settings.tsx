@@ -1,7 +1,7 @@
 import Slider from '@react-native-community/slider';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { FrequencySlider } from '../components/FrequencySlider';
 import { NoiseTypeSelector } from '../components/NoiseTypeSelector';
 import { useAudio } from '../lib/context/AudioContext';
@@ -26,7 +26,13 @@ export default function Settings() {
         <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
           {/* Binaural Settings */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Binaural Beat Settings</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Image
+                source={require('../assets/images/ui-icons/binaural-icon.png')}
+                style={styles.sectionIcon}
+              />
+              <Text style={styles.sectionTitle}>Binaural Beat Settings</Text>
+            </View>
             <Text style={styles.sectionDescription}>
               Adjust the carrier and beat frequencies for binaural mode. These settings apply when
               you select Binaural mode on the main screen.
@@ -243,11 +249,21 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 32,
   },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  sectionIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#000',
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#000',
-    marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,

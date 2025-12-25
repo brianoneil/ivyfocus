@@ -1,7 +1,7 @@
 import Slider from '@react-native-community/slider';
 import { Link } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
     SharedValue,
     useAnimatedStyle,
@@ -28,7 +28,7 @@ const dots = [...Array(ROWS).keys()].map((rowIndex) =>
 );
 
 const _distanceIndex = 1; // Euclidian distance
-const _staggerDelay = 60;
+const _staggerDelay = 150; // Increased from 60 for slower, more relaxing animation
 
 function distanceAlgo(X1: number = 0, Y1: number = 0, X2: number = 0, Y2: number = 0) {
   'worklet';
@@ -65,15 +65,15 @@ const Dot = ({ dot, fromIndex, dotColor }: DotProps) => {
     const scale = withDelay(
       distance.value,
       withSequence(
-        withTiming(1, { duration: _staggerDelay * 5 }),
-        withTiming(0.3, { duration: _staggerDelay * 3 })
+        withTiming(1, { duration: _staggerDelay * 8 }), // Increased from 5 to 8
+        withTiming(0.3, { duration: _staggerDelay * 6 }) // Increased from 3 to 6
       )
     );
     const color = withDelay(
       distance.value,
       withSequence(
-        withTiming(1.0, { duration: _staggerDelay * 3 }),
-        withTiming(0.2, { duration: _staggerDelay * 3 })
+        withTiming(1.0, { duration: _staggerDelay * 5 }), // Increased from 3 to 5
+        withTiming(0.2, { duration: _staggerDelay * 5 }) // Increased from 3 to 5
       )
     );
     return {
@@ -172,7 +172,7 @@ export default function Index() {
         case 'pink':
           return 'red'; // Use red hue for darker, less bright pink tones
         case 'brown':
-          return 'orange';
+          return 'orange'; // Orange hue for dark brown background, custom colors for circles
         case 'green':
           return 'green';
       }
@@ -180,8 +180,33 @@ export default function Index() {
     return 'blue'; // Default fallback
   };
 
+  // Get custom lava lamp colors for brown noise
+  const getLavaColors = () => {
+    if (selectedMode === 'noise' && audio.noiseColor === 'brown') {
+      // Custom brown/amber colors to avoid red or yellow tones
+      return [
+        'rgba(139, 90, 43, 0.3)',   // Dark brown
+        'rgba(160, 102, 50, 0.3)',  // Medium brown
+        'rgba(180, 120, 60, 0.3)',  // Lighter brown
+        'rgba(140, 100, 55, 0.3)',  // Earthy brown
+        'rgba(120, 80, 40, 0.3)',   // Deep brown
+      ];
+    }
+    return undefined;
+  };
+
+  // Get custom background color for brown noise
+  const getLavaBackgroundColor = () => {
+    if (selectedMode === 'noise' && audio.noiseColor === 'brown') {
+      return '#3d2817'; // Dark brown background
+    }
+    return undefined;
+  };
+
   const dotColor = getDotColor();
   const lavaHue = getLavaHue();
+  const lavaColors = getLavaColors();
+  const lavaBackgroundColor = getLavaBackgroundColor();
 
   // Animate dots based on playback state and mode
   useEffect(() => {
@@ -298,6 +323,8 @@ export default function Index() {
       ) : (
         <LavaLamp
           hue={lavaHue}
+          colors={lavaColors}
+          backgroundColor={lavaBackgroundColor}
           intensity={Math.round(100 * (1 - audio.uiDimness * 0.5))}
           count={5}
           duration={audio.isPlaying ? 8000 : 25000}
@@ -335,6 +362,14 @@ export default function Index() {
               ]}
               onPress={() => handleModeChange('binaural')}
               disabled={audio.isPlaying}>
+              <Image
+                source={require('../assets/images/ui-icons/binaural-icon.png')}
+                style={[
+                  styles.modeButtonIcon,
+                  { opacity: 0.7 * (1 - audio.uiDimness * 0.85) },
+                  selectedMode === 'binaural' && { opacity: 1 }
+                ]}
+              />
               <Text
                 style={[
                   styles.modeButtonText,
@@ -469,8 +504,9 @@ export default function Index() {
               </TouchableOpacity>
             </View>
           ) : (
-            // Noise Types
-            <View style={styles.optionsRow}>
+            // Noise Types and Natural Sounds
+            <>
+              <View style={styles.optionsRow}>
               <TouchableOpacity
                 style={[
                   styles.optionCard,
@@ -559,7 +595,163 @@ export default function Index() {
                   },
                 ]}>Green</Text>
               </TouchableOpacity>
-            </View>
+              </View>
+
+              {/* Natural Sounds Section */}
+              <View style={styles.parameterSection}>
+              <Text style={[
+                styles.parameterLabel,
+                { color: `rgba(255, 255, 255, ${0.9 * (1 - audio.uiDimness * 0.85)})` }
+              ]}>Natural Sounds</Text>
+              <View style={styles.optionsGrid}>
+                <TouchableOpacity
+                  style={[
+                    styles.optionCard,
+                    {
+                      backgroundColor: audio.naturalSound === 'none'
+                        ? 'rgba(100, 100, 100, 0.4)'
+                        : `rgba(255, 255, 255, ${0.1 * (1 - audio.uiDimness * 0.85)})`,
+                      borderColor: audio.naturalSound === 'none'
+                        ? 'rgba(150, 150, 150, 0.6)'
+                        : `rgba(255, 255, 255, ${0.2 * (1 - audio.uiDimness * 0.85)})`,
+                    },
+                  ]}
+                  onPress={() => audio.setNaturalSound('none')}>
+                  <Text style={[
+                    styles.optionName,
+                    {
+                      color: audio.naturalSound === 'none'
+                        ? '#d1d1d1'
+                        : `rgba(255, 255, 255, ${0.7 * (1 - audio.uiDimness * 0.85)})`
+                    },
+                  ]}>None</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionCard,
+                    {
+                      backgroundColor: audio.naturalSound === 'wind'
+                        ? 'rgba(147, 197, 253, 0.4)'
+                        : `rgba(255, 255, 255, ${0.1 * (1 - audio.uiDimness * 0.85)})`,
+                      borderColor: audio.naturalSound === 'wind'
+                        ? 'rgba(147, 197, 253, 0.6)'
+                        : `rgba(255, 255, 255, ${0.2 * (1 - audio.uiDimness * 0.85)})`,
+                    },
+                  ]}
+                  onPress={() => audio.setNaturalSound('wind')}>
+                  <Text style={[
+                    styles.optionName,
+                    {
+                      color: audio.naturalSound === 'wind'
+                        ? '#93c5fd'
+                        : `rgba(255, 255, 255, ${0.7 * (1 - audio.uiDimness * 0.85)})`
+                    },
+                  ]}>Wind</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionCard,
+                    {
+                      backgroundColor: audio.naturalSound === 'rain'
+                        ? 'rgba(96, 165, 250, 0.4)'
+                        : `rgba(255, 255, 255, ${0.1 * (1 - audio.uiDimness * 0.85)})`,
+                      borderColor: audio.naturalSound === 'rain'
+                        ? 'rgba(96, 165, 250, 0.6)'
+                        : `rgba(255, 255, 255, ${0.2 * (1 - audio.uiDimness * 0.85)})`,
+                    },
+                  ]}
+                  onPress={() => audio.setNaturalSound('rain')}>
+                  <Text style={[
+                    styles.optionName,
+                    {
+                      color: audio.naturalSound === 'rain'
+                        ? '#60a5fa'
+                        : `rgba(255, 255, 255, ${0.7 * (1 - audio.uiDimness * 0.85)})`
+                    },
+                  ]}>Rain</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.optionCard,
+                    {
+                      backgroundColor: audio.naturalSound === 'ocean'
+                        ? 'rgba(34, 211, 238, 0.4)'
+                        : `rgba(255, 255, 255, ${0.1 * (1 - audio.uiDimness * 0.85)})`,
+                      borderColor: audio.naturalSound === 'ocean'
+                        ? 'rgba(34, 211, 238, 0.6)'
+                        : `rgba(255, 255, 255, ${0.2 * (1 - audio.uiDimness * 0.85)})`,
+                    },
+                  ]}
+                  onPress={() => audio.setNaturalSound('ocean')}>
+                  <Text style={[
+                    styles.optionName,
+                    {
+                      color: audio.naturalSound === 'ocean'
+                        ? '#22d3ee'
+                        : `rgba(255, 255, 255, ${0.7 * (1 - audio.uiDimness * 0.85)})`
+                    },
+                  ]}>Ocean</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Volume Controls for Noise Mode */}
+              {selectedMode === 'noise' && (
+                <View style={{ marginTop: 20, paddingHorizontal: 10 }}>
+                  {/* Noise Volume Slider */}
+                  <View style={{ marginBottom: 15 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+                      <Text style={[
+                        styles.parameterLabel,
+                        { color: `rgba(255, 255, 255, ${0.8 * (1 - audio.uiDimness * 0.85)})`, fontSize: 13 }
+                      ]}>Noise Volume</Text>
+                      <Text style={[
+                        styles.volumeValue,
+                        { fontSize: 13 }
+                      ]}>{Math.round(audio.volume * 100)}%</Text>
+                    </View>
+                    <Slider
+                      style={{ width: '100%', height: 30 }}
+                      minimumValue={0}
+                      maximumValue={1}
+                      step={0.01}
+                      value={audio.volume}
+                      onValueChange={audio.setVolume}
+                      minimumTrackTintColor="rgba(255, 215, 0, 0.7)"
+                      maximumTrackTintColor={`rgba(255, 255, 255, ${0.3 * (1 - audio.uiDimness * 0.85)})`}
+                      thumbTintColor="gold"
+                    />
+                  </View>
+
+                  {/* Natural Sound Volume Slider - only show if natural sound is active */}
+                  {audio.naturalSound !== 'none' && (
+                    <View style={{ marginBottom: 10 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 5 }}>
+                        <Text style={[
+                          styles.parameterLabel,
+                          { color: `rgba(147, 197, 253, ${0.9 * (1 - audio.uiDimness * 0.85)})`, fontSize: 13 }
+                        ]}>Natural Sound Volume</Text>
+                        <Text style={[
+                          styles.volumeValue,
+                          { fontSize: 13, color: '#93c5fd' }
+                        ]}>{Math.round(audio.naturalSoundVolume * 100)}%</Text>
+                      </View>
+                      <Slider
+                        style={{ width: '100%', height: 30 }}
+                        minimumValue={0}
+                        maximumValue={1}
+                        step={0.01}
+                        value={audio.naturalSoundVolume}
+                        onValueChange={audio.setNaturalSoundVolume}
+                        minimumTrackTintColor="rgba(147, 197, 253, 0.8)"
+                        maximumTrackTintColor={`rgba(255, 255, 255, ${0.3 * (1 - audio.uiDimness * 0.85)})`}
+                        thumbTintColor="#93c5fd"
+                      />
+                    </View>
+                  )}
+                </View>
+              )}
+              </View>
+            </>
           )}
         </View>
       </View>
@@ -679,6 +871,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   modeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -689,6 +884,11 @@ const styles = StyleSheet.create({
   modeButtonActive: {
     backgroundColor: 'rgba(255, 215, 0, 0.3)',
     borderColor: 'rgba(255, 215, 0, 0.5)',
+  },
+  modeButtonIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#ffffff',
   },
   modeButtonText: {
     fontSize: 16,
