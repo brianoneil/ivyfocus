@@ -390,6 +390,14 @@ export default function Index() {
               ]}
               onPress={() => handleModeChange('noise')}
               disabled={audio.isPlaying}>
+              <Image
+                source={require('../assets/images/ui-icons/noise-icon.png')}
+                style={[
+                  styles.modeButtonIcon,
+                  { opacity: 0.7 * (1 - audio.uiDimness * 0.85) },
+                  selectedMode === 'noise' && { opacity: 1 }
+                ]}
+              />
               <Text
                 style={[
                   styles.modeButtonText,

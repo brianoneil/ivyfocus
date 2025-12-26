@@ -12,7 +12,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.boneil.ivyfocus",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "This app does not record audio. This permission is required by audio libraries used for sound generation and playback."
       }
     },
     "android": {

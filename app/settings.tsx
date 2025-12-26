@@ -93,7 +93,13 @@ export default function Settings() {
 
           {/* Noise Settings */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Noise Type Settings</Text>
+            <View style={styles.sectionTitleContainer}>
+              <Image
+                source={require('../assets/images/ui-icons/noise-icon.png')}
+                style={styles.sectionIcon}
+              />
+              <Text style={styles.sectionTitle}>Noise Type Settings</Text>
+            </View>
             <Text style={styles.sectionDescription}>
               Choose your preferred ambient noise type. Each color has different frequency
               characteristics.
